@@ -3,12 +3,17 @@ from fastapi.security import OAuth2PasswordBearer
 from typing import List
 import pandas as pd
 import os
+import sys
+from loguru import logger
 from pathlib import Path
 from app.models.ml_models import SpamClassifier
 from app.core.auth import verify_token
 
+logger.remove()  # 기본 설정 제거
+logger.add(sys.stdout, level="INFO", format="{time} - {level} - {message}")
+
 router = APIRouter()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
 
 # 프로젝트 루트 디렉토리 설정
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -39,7 +44,10 @@ async def list_files(token: str = Depends(oauth2_scheme)):
     learning_data_dir = BASE_DIR / "learning-data"
     files = []
     if learning_data_dir.exists():
-        files = [f.name for f in learning_data_dir.glob("*.csv")]
+        files = [f.name for f in learning_data_dir.glob("*.xlsx")]
+    
+    logger.info(f"files : {files}")
+
     return {"files": files}
 
 @router.get("/data/{filename}")
@@ -52,10 +60,13 @@ async def get_file_data(filename: str, page: int = 1, size: int = 50, token: str
         raise HTTPException(status_code=404, detail="File not found")
     
     try:
-        df = pd.read_csv(file_path)
+        logger.info(f"excel file_path : {file_path}")
+        df = pd.read_excel(file_path)
         total = len(df)
         start = (page - 1) * size
         end = start + size
+        # 컬럼 이름 강제로 지정
+        df.columns = ['text', 'label']
         data = df.iloc[start:end].to_dict('records')
         return {
             "total": total,

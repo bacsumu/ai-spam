@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/contexts/AuthContext";
+import { useApiClient } from "@/hooks/useApiClient";
 import { useEffect, useState } from "react";
 
 interface FileData {
@@ -18,14 +19,19 @@ export default function UploadPage() {
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [fileData, setFileData] = useState<FileData | null>(null);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(50);
+  const [pageSize, setPageSize] = useState(10);
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const { fetchWithAuth } = useApiClient();
 
   useEffect(() => {
     fetchFiles();
   }, [token]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [selectedFile]);
 
   useEffect(() => {
     if (selectedFile) {
@@ -35,11 +41,14 @@ export default function UploadPage() {
 
   const fetchFiles = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/learning/files", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetchWithAuth(
+        "http://localhost:8000/api/learning/files",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       const data = await response.json();
       setFiles(data.files);
     } catch (error) {
@@ -51,7 +60,7 @@ export default function UploadPage() {
     if (!selectedFile) return;
 
     try {
-      const response = await fetch(
+      const response = await fetchWithAuth(
         `http://localhost:8000/api/learning/data/${selectedFile}?page=${page}&size=${pageSize}`,
         {
           headers: {
@@ -78,7 +87,7 @@ export default function UploadPage() {
     formData.append("file", file);
 
     try {
-      const response = await fetch(
+      const response = await fetchWithAuth(
         "http://localhost:8000/api/learning/upload",
         {
           method: "POST",
@@ -107,14 +116,17 @@ export default function UploadPage() {
 
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:8000/api/learning/train", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ filenames: selectedFiles }),
-      });
+      const response = await fetchWithAuth(
+        "http://localhost:8000/api/learning/train",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ filenames: selectedFiles }),
+        }
+      );
 
       if (response.ok) {
         setMessage("모델 학습이 완료되었습니다.");
@@ -130,10 +142,10 @@ export default function UploadPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold mb-4">학습 파일 업로드</h1>
+        <h1 className="text-2xl font-bold mb-4">학습 파일 업로드(xlsx)</h1>
         <input
           type="file"
-          accept=".csv"
+          accept=".xlsx"
           onChange={handleFileUpload}
           className="mb-4"
         />
@@ -197,6 +209,8 @@ export default function UploadPage() {
                 onChange={(e) => setPageSize(Number(e.target.value))}
                 className="border rounded p-1"
               >
+                <option value="10">10개씩 보기</option>
+                <option value="20">20개씩 보기</option>
                 <option value="50">50개씩 보기</option>
                 <option value="100">100개씩 보기</option>
                 <option value="200">200개씩 보기</option>
@@ -212,12 +226,13 @@ export default function UploadPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {fileData.data.map((row, index) => (
-                    <tr key={index} className="border-t">
-                      <td className="px-4 py-2">{row.text}</td>
-                      <td className="px-4 py-2">{row.label}</td>
-                    </tr>
-                  ))}
+                  {fileData.data &&
+                    fileData.data.map((row, index) => (
+                      <tr key={index} className="border-t">
+                        <td className="px-4 py-2">{row.text}</td>
+                        <td className="px-4 py-2">{row.label}</td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>

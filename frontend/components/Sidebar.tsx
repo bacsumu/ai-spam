@@ -19,10 +19,7 @@ export default function Sidebar() {
           <h2 className="text-lg font-semibold mb-2">학습</h2>
           <ul className="space-y-2">
             <li>
-              <Link
-                href="/learning/upload"
-                className="block hover:text-gray-300"
-              >
+              <Link href="/learning" className="block hover:text-gray-300">
                 학습파일 업로드
               </Link>
             </li>
@@ -33,7 +30,7 @@ export default function Sidebar() {
           <h2 className="text-lg font-semibold mb-2">테스트</h2>
           <ul className="space-y-2">
             <li>
-              <Link href="/testing/model" className="block hover:text-gray-300">
+              <Link href="/testing" className="block hover:text-gray-300">
                 모델 테스트
               </Link>
             </li>

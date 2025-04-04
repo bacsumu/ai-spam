@@ -27,6 +27,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (storedToken) {
       setToken(storedToken);
       setIsAuthenticated(true);
+      router.push("/testing");
     } else {
       router.push("/login");
     }

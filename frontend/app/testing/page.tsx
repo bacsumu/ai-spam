@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/contexts/AuthContext";
+import { useApiClient } from "@/hooks/useApiClient";
 import { useEffect, useState } from "react";
 
 interface TestResult {
@@ -17,6 +18,7 @@ export default function ModelTestPage() {
   const [results, setResults] = useState<TestResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const { fetchWithAuth } = useApiClient();
 
   useEffect(() => {
     fetchModels();
@@ -24,14 +26,18 @@ export default function ModelTestPage() {
 
   const fetchModels = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/testing/models", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetchWithAuth(
+        "http://localhost:8000/api/testing/models",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
       const data = await response.json();
       setModels(data.models);
-      if (data.models.length > 0) {
+      if (data?.models?.length > 0) {
         setSelectedModel(data.models[0]);
       }
     } catch (error) {
@@ -48,7 +54,7 @@ export default function ModelTestPage() {
 
     setLoading(true);
     try {
-      const response = await fetch(
+      const response = await fetchWithAuth(
         "http://localhost:8000/api/testing/predict-text",
         {
           method: "POST",
@@ -85,7 +91,7 @@ export default function ModelTestPage() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await fetch(
+      const response = await fetchWithAuth(
         `http://localhost:8000/api/testing/predict-file?model_name=${selectedModel}`,
         {
           method: "POST",

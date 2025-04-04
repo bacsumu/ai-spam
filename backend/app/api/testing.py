@@ -8,7 +8,7 @@ from app.models.ml_models import SpamClassifier
 from app.core.auth import verify_token
 
 router = APIRouter()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
 
 # 프로젝트 루트 디렉토리 설정
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
