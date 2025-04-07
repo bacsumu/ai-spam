@@ -37,16 +37,22 @@ uvicorn app.main:app --reload
 ```
 
 ### 프론트엔드 설정
+0. 패키지 매니저 변경(npm->yarn)
+```bash
+npm install -g yarn
+```
 
 1. 의존성 설치:
 ```bash
 cd frontend
-npm install
+#npm install
+yarn install
 ```
 
 2. 개발 서버 실행:
 ```bash
-npm run dev
+#npm run dev
+yarn dev
 ```
 
 ## 기능
