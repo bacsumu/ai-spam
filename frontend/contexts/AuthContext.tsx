@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 interface AuthContextType {
   isAuthenticated: boolean;
   login: (username: string, password: string) => Promise<void>;
@@ -24,18 +25,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
-    if (storedToken) {
+    if (storedToken && !isTokenExpired(storedToken)) {
       setToken(storedToken);
       setIsAuthenticated(true);
       router.push("/testing");
     } else {
+      setToken(null);
+      setIsAuthenticated(false);
       router.push("/login");
     }
   }, []);
 
+  const isTokenExpired = (token: string) => {
+    if (!token) return true;
+
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      const currentTime = Math.floor(Date.now() / 1000); // 현재 시간 (초 단위)
+      return payload.exp < currentTime;
+    } catch (error) {
+      console.error("Invalid token", error);
+      return true;
+    }
+  };
+
   const login = async (username: string, password: string) => {
     try {
-      const response = await fetch("http://localhost:8000/api/auth/token", {
+      const response = await fetch(`${API_BASE_URL}/api/auth/token`, {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
@@ -54,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem("token", data.access_token);
       setToken(data.access_token);
       setIsAuthenticated(true);
-      router.push("/");
+      router.push("/testing");
     } catch (error) {
       console.error("Login error:", error);
       throw error;

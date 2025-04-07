@@ -8,6 +8,7 @@ from loguru import logger
 from pathlib import Path
 from app.models.ml_models import SpamClassifier
 from app.core.auth import verify_token
+from pydantic import BaseModel
 
 logger.remove()  # 기본 설정 제거
 logger.add(sys.stdout, level="INFO", format="{time} - {level} - {message}")
@@ -23,8 +24,8 @@ async def upload_file(file: UploadFile = File(...), token: str = Depends(oauth2_
     if not verify_token(token):
         raise HTTPException(status_code=401, detail="Invalid token")
         
-    if not file.filename.endswith('.csv'):
-        raise HTTPException(status_code=400, detail="Only CSV files are allowed")
+    if not file.filename.endswith('.xlsx'):
+        raise HTTPException(status_code=400, detail="Only XLSX files are allowed")
     
     learning_data_dir = BASE_DIR / "learning-data"
     learning_data_dir.mkdir(exist_ok=True)
@@ -77,21 +78,47 @@ async def get_file_data(filename: str, page: int = 1, size: int = 50, token: str
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+class FileListRequest(BaseModel):
+    filenames: List[str]
+
+@router.post("/deleteFiles")
+async def delete_files(filenames: FileListRequest, token: str = Depends(oauth2_scheme)):
+    if not verify_token(token):
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    logger.info(f"delete_files filenames : {filenames}")
+
+    for filename in filenames.filenames:
+        file_path = BASE_DIR / "learning-data" / filename
+        if not file_path.exists():
+            raise HTTPException(status_code=404, detail=f"파일 {filename}을 찾을 수 없습니다")
+            
+        try:
+            file_path.unlink()
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"파일 {filename} 삭제 중 오류 발생: {str(e)}")
+            
+    return {"message": "파일이 성공적으로 삭제되었습니다"}
+
+
 @router.post("/train")
-async def train_model(filenames: List[str], token: str = Depends(oauth2_scheme)):
+async def train_model(filenames: FileListRequest, token: str = Depends(oauth2_scheme)):
     if not verify_token(token):
         raise HTTPException(status_code=401, detail="Invalid token")
         
     texts = []
     labels = []
     
-    for filename in filenames:
+    logger.info(f"train_model filenames : {filenames}")
+
+    for filename in filenames.filenames:
         file_path = BASE_DIR / "learning-data" / filename
         if not file_path.exists():
             raise HTTPException(status_code=404, detail=f"File {filename} not found")
         
         try:
-            df = pd.read_csv(file_path)
+            df = pd.read_excel(file_path)
             if 'text' not in df.columns or 'label' not in df.columns:
                 raise HTTPException(status_code=400, detail=f"File {filename} must contain 'text' and 'label' columns")
             

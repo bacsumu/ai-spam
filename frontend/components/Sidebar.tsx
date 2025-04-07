@@ -37,6 +37,16 @@ export default function Sidebar() {
           </ul>
         </div>
 
+        <div>
+          <ul className="space-y-2">
+            <li>
+              <Link href="/about" className="block hover:text-gray-300">
+                About
+              </Link>
+            </li>
+          </ul>
+        </div>
+
         <button
           onClick={logout}
           className="mt-8 w-full bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700"

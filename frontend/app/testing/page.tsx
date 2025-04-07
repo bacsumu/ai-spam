@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useApiClient } from "@/hooks/useApiClient";
 import { useEffect, useState } from "react";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 interface TestResult {
   text: string;
   is_spam: boolean;
@@ -27,7 +28,7 @@ export default function ModelTestPage() {
   const fetchModels = async () => {
     try {
       const response = await fetchWithAuth(
-        "http://localhost:8000/api/testing/models",
+        `${API_BASE_URL}/api/testing/models`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -55,7 +56,7 @@ export default function ModelTestPage() {
     setLoading(true);
     try {
       const response = await fetchWithAuth(
-        "http://localhost:8000/api/testing/predict-text",
+        `${API_BASE_URL}/api/testing/predict-text`,
         {
           method: "POST",
           headers: {
@@ -92,7 +93,7 @@ export default function ModelTestPage() {
       formData.append("file", file);
 
       const response = await fetchWithAuth(
-        `http://localhost:8000/api/testing/predict-file?model_name=${selectedModel}`,
+        `${API_BASE_URL}/api/testing/predict-file?model_name=${selectedModel}`,
         {
           method: "POST",
           headers: {

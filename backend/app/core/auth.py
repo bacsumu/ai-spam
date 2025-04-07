@@ -6,6 +6,8 @@ import json
 import os
 from pathlib import Path
 from ..config import settings
+from pydantic import BaseModel
+from typing import Optional
 
 # 프로젝트 루트 디렉토리 설정
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -60,3 +62,10 @@ def save_users(users: dict):
     users_file = users_dir / "auth.dat"
     with open(users_file, "w") as f:
         json.dump(users, f) 
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    username: Optional[str] = None 

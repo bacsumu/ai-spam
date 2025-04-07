@@ -4,7 +4,7 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from typing import Optional
-from ..models.auth import Token, TokenData
+from ..core.auth import Token, TokenData
 from ..config import settings
 from app.core.auth import create_access_token
 

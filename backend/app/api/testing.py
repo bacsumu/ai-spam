@@ -6,12 +6,19 @@ from pathlib import Path
 import pandas as pd
 from app.models.ml_models import SpamClassifier
 from app.core.auth import verify_token
+from fastapi.requests import Request
+from fastapi.responses import JSONResponse
+from loguru import logger
+import traceback
+import sys
+from pydantic import BaseModel
 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
 
 # 프로젝트 루트 디렉토리 설정
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
 
 @router.get("/models")
 async def list_models(token: str = Depends(oauth2_scheme)):
@@ -24,16 +31,20 @@ async def list_models(token: str = Depends(oauth2_scheme)):
         models = [f.name for f in model_dir.iterdir()]
     return {"models": models}
 
+class PredictTextRequest(BaseModel):
+    model_name: str
+    text: str
+
 @router.post("/predict-text")
-async def predict_text(model_name: str, text: str, token: str = Depends(oauth2_scheme)):
+async def predict_text(request: PredictTextRequest, token: str = Depends(oauth2_scheme)):
     if not verify_token(token):
         raise HTTPException(status_code=401, detail="Invalid token")
         
     try:
-        model = SpamClassifier.load_model(model_name)
-        prediction = model.predict([text])[0]
+        model = SpamClassifier.load_model(request.model_name)
+        prediction = model.predict([request.text])[0]
         return {
-            "text": text,
+            "text": request.text,
             "is_spam": bool(prediction)
         }
     except FileNotFoundError:

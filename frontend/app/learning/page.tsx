@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useApiClient } from "@/hooks/useApiClient";
 import { useEffect, useState } from "react";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 interface FileData {
   filename: string;
   data: {
@@ -42,7 +43,7 @@ export default function UploadPage() {
   const fetchFiles = async () => {
     try {
       const response = await fetchWithAuth(
-        "http://localhost:8000/api/learning/files",
+        `${API_BASE_URL}/api/learning/files`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -61,7 +62,7 @@ export default function UploadPage() {
 
     try {
       const response = await fetchWithAuth(
-        `http://localhost:8000/api/learning/data/${selectedFile}?page=${page}&size=${pageSize}`,
+        `${API_BASE_URL}/api/learning/data/${selectedFile}?page=${page}&size=${pageSize}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -88,7 +89,7 @@ export default function UploadPage() {
 
     try {
       const response = await fetchWithAuth(
-        "http://localhost:8000/api/learning/upload",
+        `${API_BASE_URL}/api/learning/upload`,
         {
           method: "POST",
           headers: {
@@ -108,6 +109,38 @@ export default function UploadPage() {
     }
   };
 
+  const handleDeleteFiles = async () => {
+    if (!selectedFiles.length) {
+      setMessage("삭제할 파일을 선택해주세요.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetchWithAuth(
+        `${API_BASE_URL}/api/learning/deleteFiles`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ filenames: selectedFiles }),
+        }
+      );
+
+      if (response.ok) {
+        fetchFiles();
+        setSelectedFiles([]);
+        setMessage("삭제 완료되었습니다.");
+      }
+    } catch (error) {
+      console.error("Error training model:", error);
+      setMessage("파일 삭제에 실패했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleTrain = async () => {
     if (!selectedFiles.length) {
       setMessage("학습할 파일을 선택해주세요.");
@@ -117,7 +150,7 @@ export default function UploadPage() {
     setLoading(true);
     try {
       const response = await fetchWithAuth(
-        "http://localhost:8000/api/learning/train",
+        `${API_BASE_URL}/api/learning/train`,
         {
           method: "POST",
           headers: {
@@ -197,6 +230,13 @@ export default function UploadPage() {
             className="mt-4 bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 disabled:bg-gray-400"
           >
             {loading ? "학습 중..." : "선택한 파일로 학습하기"}
+          </button>
+          <button
+            onClick={handleDeleteFiles}
+            disabled={loading || !selectedFiles.length}
+            className="mt-4 ml-4 bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 disabled:bg-gray-400"
+          >
+            {"삭제하기"}
           </button>
         </div>
 
