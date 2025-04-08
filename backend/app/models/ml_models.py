@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 import pandas as pd
@@ -5,47 +6,32 @@ import joblib
 import os
 from datetime import datetime
 from pathlib import Path
+import sys
+from loguru import logger
+
+
+logger.remove()  # 기본 설정 제거
+logger.add(sys.stdout, level="INFO", format="{time} - {level} - {message}")
 
 # 프로젝트 루트 디렉토리 설정
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-class SpamClassifier:
+class SpamClassifier(ABC):
     def __init__(self):
-        self.vectorizer = TfidfVectorizer()
-        self.classifier = MultinomialNB()
-        
+        self.model_types = ['Naive Bayes', 'SVC', 'BERT']
+
+    @abstractmethod 
     def train(self, texts, labels):
-        X = self.vectorizer.fit_transform(texts)
-        self.classifier.fit(X, labels)
-        
+        pass
+    
+    @abstractmethod
     def predict(self, texts):
-        X = self.vectorizer.transform(texts)
-        return self.classifier.predict(X)
+        pass
     
+    @abstractmethod
     def save_model(self, model_name=None):
-        if model_name is None:
-            model_name = datetime.now().strftime("%Y%m%d-%H%M%S")
-        
-        model_dir = BASE_DIR / "ml-model"
-        model_dir.mkdir(exist_ok=True)
-        model_path = model_dir / model_name
-        
-        joblib.dump({
-            'vectorizer': self.vectorizer,
-            'classifier': self.classifier
-        }, model_path)
-        
-        return model_name
+        pass
     
-    @classmethod
+    @abstractmethod
     def load_model(cls, model_name):
-        model_path = BASE_DIR / "ml-model" / model_name
-        if not model_path.exists():
-            raise FileNotFoundError(f"Model {model_name} not found")
-        
-        model = cls()
-        saved_model = joblib.load(model_path)
-        model.vectorizer = saved_model['vectorizer']
-        model.classifier = saved_model['classifier']
-        
-        return model 
+        pass

@@ -223,7 +223,7 @@ export default function UploadPage() {
                 </div>
               ))}
           </div>
-
+          {/*}
           <button
             onClick={handleTrain}
             disabled={loading || !selectedFiles.length}
@@ -231,6 +231,7 @@ export default function UploadPage() {
           >
             {loading ? "학습 중..." : "선택한 파일로 학습하기"}
           </button>
+          {*/}
           <button
             onClick={handleDeleteFiles}
             disabled={loading || !selectedFiles.length}

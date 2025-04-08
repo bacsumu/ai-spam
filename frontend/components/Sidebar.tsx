@@ -19,8 +19,13 @@ export default function Sidebar() {
           <h2 className="text-lg font-semibold mb-2">학습</h2>
           <ul className="space-y-2">
             <li>
-              <Link href="/learning" className="block hover:text-gray-300">
-                학습파일 업로드
+              <Link href="/learning-data" className="block hover:text-gray-300">
+                학습파일 관리
+              </Link>
+            </li>
+            <li>
+              <Link href="/ml-learning" className="block hover:text-gray-300">
+                ML학습
               </Link>
             </li>
           </ul>

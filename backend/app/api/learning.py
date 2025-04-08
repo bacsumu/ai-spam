@@ -1,3 +1,4 @@
+from backend.app.models.ml_naivebayes import SpamNaiveBayesClassifier
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from fastapi.security import OAuth2PasswordBearer
 from typing import List
@@ -131,7 +132,7 @@ async def train_model(filenames: FileListRequest, token: str = Depends(oauth2_sc
         raise HTTPException(status_code=400, detail="No data to train")
     
     try:
-        model = SpamClassifier()
+        model = SpamNaiveBayesClassifier()
         model.train(texts, labels)
         model_name = model.save_model()
         return {"model_name": model_name}

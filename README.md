@@ -22,7 +22,7 @@ AI 학습과 테스트를 위한 관리 페이지입니다.
 ```bash
 cd backend
 python -m venv venv
-source venv/Scripts/activate  # Windows
+./venv/Scripts/activate  # Windows
 # source venv/bin/activate   # Linux/Mac
 ```
 
@@ -65,7 +65,7 @@ yarn dev
 ### 테스트
 - 학습된 모델 선택
 - 텍스트 입력으로 스팸 여부 테스트
-- CSV 파일 업로드로 일괄 테스트
+- XLSX 파일 업로드로 일괄 테스트
 
 ## API 문서
 

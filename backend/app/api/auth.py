@@ -4,9 +4,14 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from typing import Optional
-from ..core.auth import Token, TokenData
+from ..core.auth import Token, TokenData, load_users, save_users
 from ..config import settings
 from app.core.auth import create_access_token
+import sys
+from loguru import logger
+
+logger.remove()  # 기본 설정 제거
+logger.add(sys.stdout, level="INFO", format="{time} - {level} - {message}")
 
 router = APIRouter()
 
@@ -30,18 +35,36 @@ def get_password_hash(password):
 @router.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     # 테스트 계정 정보
-    test_user = {
-        "username": "test",
-        "hashed_password": get_password_hash("test")
-    }
+    #test_user = {
+    #    "username": "test",
+    #    "hashed_password": get_password_hash("test")
+    #}
     
-    if form_data.username != test_user["username"] or not verify_password(form_data.password, test_user["hashed_password"]):
+    #if form_data.username != test_user["username"] or not verify_password(form_data.password, test_user["hashed_password"]):
+    #    raise HTTPException(
+    #        status_code=status.HTTP_401_UNAUTHORIZED,
+    #        detail="Incorrect username or password",
+    #        headers={"WWW-Authenticate": "Bearer"},
+    #    )
+    
+    users = load_users()
+    if form_data.username not in users:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
+    hashed_password = get_password_hash(form_data.password)
+    #logger.info(f"{form_data.username}, {users[form_data.username]['hashed_password']}")
+    logger.info(f"{users[form_data.username]['hashed_password']} - {hashed_password}")
+    if not verify_password( form_data.password,users[form_data.username]['hashed_password']):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     #access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": form_data.username}
